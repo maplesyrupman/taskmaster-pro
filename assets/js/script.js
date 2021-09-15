@@ -128,6 +128,56 @@ $("#remove-tasks").on("click", function() {
   saveTasks();
 });
 
+// add sortability to lists
+$('.card .list-group').sortable({
+  connectWith: $('.card .list-group'),
+  scroll: false,
+  tolerance: 'pointer',
+  helper: 'clone', 
+  activate: function(event) {
+
+  },
+  deactivate: function(event) {
+
+  },
+  over: function(event) {
+
+  },
+  out: function(event) {
+
+  },
+  update: function(event) {
+    let tempArr = [];
+    $(this).children().each(function() {
+      let text = $(this).find('p').text().trim();
+      let date = $(this).find('span').text().trim();
+
+      tempArr.push({
+        text: text,
+        date: date
+      });
+    });
+    let arrName = $(this).attr('id').replace('list-', '');
+    tasks[arrName] = tempArr;
+    saveTasks();
+  }
+});
+
+// add droppability to #trash
+$('#trash').droppable({
+  accept: '.card .list-group-item',
+  tolerance: 'touch', 
+  drop: function(event, ui) {
+    ui.draggable.remove();
+  },
+  over: function(event, ui) {
+    console.log('over');
+  },
+  out: function(event, ui) {
+    console.log('out');
+  }
+});
+
 // load tasks for the first time
 loadTasks();
 
