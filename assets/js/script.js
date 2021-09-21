@@ -13,6 +13,7 @@ var createTask = function(taskText, taskDate, taskList) {
   // append span and p element to parent li
   taskLi.append(taskSpan, taskP);
 
+  auditTask(taskLi);
 
   // append to ul list on the page
   $("#list-" + taskList).append(taskLi);
@@ -44,6 +45,7 @@ var saveTasks = function() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 };
 
+// edit task name on click
 $('.list-group').on("click", "p", function() {
   let text = $(this).text().trim();
 
@@ -52,6 +54,7 @@ $('.list-group').on("click", "p", function() {
   textInput.trigger('focus');
 });
 
+// save edited task name
 $('.list-group').on('blur', 'textarea', function() {
   let text = $(this).val().trim();
   let status = $(this).closest('.list-group').attr('id').replace('list-', '');
@@ -64,24 +67,35 @@ $('.list-group').on('blur', 'textarea', function() {
   $(this).replaceWith(taskP);
 });
 
+// edit date on click of span
 $('.list-group').on('click', 'span', function() {
   let date = $(this).text().trim();
   let dateInput = $('<input>').attr('type', 'text').addClass('form-control').val(date);
 
   $(this).replaceWith(dateInput);
+
+  dateInput.datepicker({
+    minDate: 1,
+    onClose: function() {
+      $(this).trigger('change');
+    }
+  });
   dateInput.trigger('focus');
 });
 
-$('.list-group').on('blur', 'input', function() {
+// save edited date
+$('.list-group').on('change', 'input', function() {
   let date = $(this).val().trim();
   let status = $(this).closest('.list-group').attr('id').replace('list-', '');
   let index = $(this).closest('.list-group-item').index();
 
   tasks[status][index].date = date;
+  saveTasks();
 
   let taskSpan = $('<span>').addClass('badge badge-primary badge-pill').text(date);
-
   $(this).replaceWith(taskSpan);
+
+  auditTask($(taskSpan).closest('.list-group-item'));
 })
 
 
@@ -177,6 +191,25 @@ $('#trash').droppable({
     console.log('out');
   }
 });
+
+// add datePicker
+$('#modalDueDate').datepicker({
+  minDate: 1,
+});
+
+let auditTask = (taskEl) => {
+  let date = $(taskEl).find('span').text().trim();
+  
+  let time = moment(date, 'L').set('hour', 17);
+  
+  $(taskEl).removeClass('list-group-item-warning list-group-item-danger');
+
+  if (moment().isAfter(time)) {
+    $(taskEl).addClass('list-group-item-danger');
+  } else if (Math.abs(moment().diff(time, 'days')) <= 2) {
+    $(taskEl).addClass('list-group-item-warning');
+  }
+}
 
 // load tasks for the first time
 loadTasks();
